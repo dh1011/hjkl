@@ -1,0 +1,29 @@
+# Only application inputs enter the local build context.
+**
+!Containerfile
+!package.json
+!package-lock.json
+!.npmrc
+!tsconfig.json
+!next.config.ts
+!vite.config.ts
+!vite.node.config.ts
+!postcss.config.mjs
+!.openai/
+!.openai/hosting.json
+!app/**
+!components/**
+!hooks/**
+!lib/**
+!build/**
+!scripts/**
+!public/**
+!vendor/**
+# Keep credentials and local state out, including within allowed directories.
+**/.env*
+**/*.pem
+**/*.key
+**/.git/**
+**/.ssh/**
+**/.npmrc
+!.npmrc

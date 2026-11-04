@@ -1,0 +1,18 @@
+[Unit]
+Description=hjkl Vim learning game
+Wants=network-online.target
+After=network-online.target
+
+[Container]
+Image=localhost/hjkl:RELEASE
+ContainerName=hjkl
+PublishPort=127.0.0.1:3000:3000
+NoNewPrivileges=true
+DropCapability=all
+
+[Service]
+Restart=always
+TimeoutStartSec=90
+
+[Install]
+WantedBy=multi-user.target
