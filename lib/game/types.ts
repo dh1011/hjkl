@@ -112,6 +112,8 @@ export interface ProgressState {
     theme: "ink" | "paper";
     cursor: boolean;
     effect: boolean;
+    /** Opt-in: offer the undo prompt after guided edits when a mistake moves the text further from the goal. */
+    undoReminders?: boolean;
   };
   active?: SavedAttempt;
   review: string[];

@@ -99,6 +99,47 @@ export function recovery(p: PuzzleSpec, s: EditorSnapshot): string | undefined {
   )
     return "Off track. Press u to undo.";
 }
+/** Character edit distance, trimmed to the region where the texts differ. */
+export function editDistance(a: string, b: string) {
+  let start = 0;
+  while (start < a.length && start < b.length && a[start] === b[start]) start++;
+  let endA = a.length,
+    endB = b.length;
+  while (endA > start && endB > start && a[endA - 1] === b[endB - 1]) {
+    endA--;
+    endB--;
+  }
+  const x = a.slice(start, endA),
+    y = b.slice(start, endB);
+  let row = Array.from({ length: y.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= x.length; i++) {
+    const next = [i];
+    for (let j = 1; j <= y.length; j++)
+      next[j] = Math.min(
+        row[j] + 1,
+        next[j - 1] + 1,
+        row[j - 1] + (x[i - 1] === y[j - 1] ? 0 : 1),
+      );
+    row = next;
+  }
+  return row[y.length];
+}
+/**
+ * Opt-in undo reminder for prompted and independent edits. Valid alternative
+ * routes leave the authored path, so a reminder also requires the text to be
+ * further from the target than the starting text was.
+ */
+export function undoReminder(
+  p: PuzzleSpec,
+  s: EditorSnapshot,
+  cue: { recover?: boolean },
+): string | undefined {
+  if (s.mode !== "normal" || s.pending || s.document === p.target) return;
+  if (!recovery(p, s) && !cue.recover) return;
+  if (editDistance(s.document, p.target) <= editDistance(p.initial, p.target))
+    return;
+  return "Off track. Press u to undo.";
+}
 export function displayKey(key: string) {
   return key === "<Esc>"
     ? "esc"

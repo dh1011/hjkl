@@ -28,7 +28,13 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { practicePuzzle, SKILLS, SKILL_METADATA } from "@/lib/game/curriculum";
 import { courseForRun, courseForSkills } from "@/lib/game/run";
-import { displayKey, evaluate, mastery, recovery } from "@/lib/game/engine";
+import {
+  displayKey,
+  evaluate,
+  mastery,
+  recovery,
+  undoReminder,
+} from "@/lib/game/engine";
 import { GameEditor } from "@/lib/game/editor";
 import { initializeProgress, SESSION_GAP } from "@/lib/game/progress";
 import type {
@@ -63,6 +69,8 @@ function DesktopGame() {
     [sectionOrder, selectedSkills],
   );
   const [snapshot, setSnapshot] = useState<EditorSnapshot>(EMPTY);
+  // Which puzzle the snapshot describes; a new editor reports after its first render.
+  const [snapshotFor, setSnapshotFor] = useState("");
   const snapshotRef = useRef(snapshot);
   const [phase, setPhase] = useState<"playing" | "success" | "celebration">(
     "playing",
@@ -106,6 +114,7 @@ function DesktopGame() {
   }, [panel]);
   const [hint, setHint] = useState(0);
   const hintRef = useRef(0);
+  const remindedRef = useRef(false);
   const [nudge, setNudge] = useState("");
   const host = useRef<HTMLDivElement>(null);
   const helpBody = useRef<HTMLDivElement>(null);
@@ -180,7 +189,10 @@ function DesktopGame() {
         world: p.world,
         session: next.session,
         completed: true,
-        assisted: p.assistance !== "independent" || hintRef.current > 0,
+        assisted:
+          p.assistance !== "independent" ||
+          hintRef.current > 0 ||
+          remindedRef.current,
         hints: hintRef.current,
         demonstrated: [
           ...new Set(completedSnapshot.evidence.map((e) => e.skill)),
@@ -253,6 +265,7 @@ function DesktopGame() {
     const resume =
       progress.active?.puzzleId === p.id ? progress.active : undefined;
     hintRef.current = resume?.hints ?? 0;
+    remindedRef.current = false;
     setHint(hintRef.current);
     setNudge("");
     const editor = new GameEditor({
@@ -280,6 +293,7 @@ function DesktopGame() {
         if (phaseRef.current === "playing" && expectedId !== p.id) return;
         snapshotRef.current = s;
         setSnapshot(s);
+        setSnapshotFor(p.id);
         if (phaseRef.current !== "playing" || !data.current) return;
         const now = Date.now();
         const old = data.current;
@@ -467,9 +481,19 @@ function DesktopGame() {
   const inFinal = !!current.objectives;
   const isLongDocument = current.initial.split("\n").length >= 15;
   const cue = nextCue(current, snapshot);
-  // Only guided lessons point the way back after a mistake.
+  // Guided lessons point the way back after a mistake. Later stages do so
+  // only when the learner opts in to undo reminders.
   const problem =
-    current.assistance === "guided" ? recovery(current, snapshot) : undefined;
+    current.assistance === "guided"
+      ? recovery(current, snapshot)
+      : state?.settings.undoReminders && snapshotFor === current.id
+        ? undoReminder(current, snapshot, cue)
+        : undefined;
+  const reminded = !!problem && current.assistance === "independent";
+  // An independent edit that needed a reminder is not unaided.
+  useEffect(() => {
+    if (reminded) remindedRef.current = true;
+  }, [reminded]);
   const statusLine = nudge || problem;
   const hintText =
     hint === 1
@@ -1237,6 +1261,20 @@ function DesktopGame() {
                     }
                     setting({ sound });
                   }}
+                />
+              </div>
+              <div className="setting-row">
+                <div>
+                  <h3>Undo reminders</h3>
+                  <p>
+                    After the guided edits, point out a mistake that moves the
+                    text away from the goal.
+                  </p>
+                </div>
+                <Switch
+                  aria-label="Undo reminders"
+                  checked={state?.settings.undoReminders ?? false}
+                  onCheckedChange={(undoReminders) => setting({ undoReminders })}
                 />
               </div>
               <div className="setting-row">

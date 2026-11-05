@@ -670,3 +670,14 @@ test("undo and cancelled searches cannot supply new technique credit", async ({
   expect(result.cancelled).not.toContain("search");
   expect(result.undone).toEqual([]);
 });
+test("undo reminders need an off-path edit that moves away from the target", async () => {
+  const { undoReminder, editDistance } = await import("../lib/game/engine");
+  expect(editDistance("kitten", "sitting")).toBe(3);
+  expect(editDistance("same", "same")).toBe(0);
+  const p = PUZZLES["word-4"];
+  const base = { cursor: 0, selection: { from: 0, to: 0 }, mode: "normal" as const, pending: false, evidence: [], motionUsed: [], marksSet: [], lastCommand: "", selectionMatched: false };
+  expect(undoReminder(p, { ...base, document: p.initial }, { recover: true })).toBeUndefined();
+  expect(undoReminder(p, { ...base, document: "" }, { recover: true })).toBe("Off track. Press u to undo.");
+  expect(undoReminder(p, { ...base, document: "" }, {})).toBeUndefined();
+  expect(undoReminder(p, { ...base, document: "", mode: "insert" }, { recover: true })).toBeUndefined();
+});

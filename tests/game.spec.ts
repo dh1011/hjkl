@@ -813,3 +813,27 @@ test(":help on a completed level cannot trigger the l continuation shortcut", as
   await expect(page.locator("main")).toHaveAttribute("data-puzzle", "word-0");
   await expect(editor(page)).toBeFocused();
 });
+for (const [index, assistance] of [[2, "prompted"], [4, "independent"]] as const)
+  test(`opt-in undo reminders cover ${assistance} edits`, async ({ page }) => {
+    expect(COURSE[index].assistance).toBe(assistance);
+    await openAt(page, index, {
+      settings: { ...newProgress().settings, undoReminders: true },
+    });
+    await keys(page, ["d", "d"]);
+    await expect(page.getByRole("status")).toHaveText("Off track. Press u to undo.");
+    await page.getByRole("button", { name: "u Undo", exact: true }).click();
+    await expect(editor(page)).toHaveText(COURSE[index].initial);
+    await expect(page.getByRole("status")).toHaveCount(0);
+    await keys(page, ["c", "c", ...COURSE[index].target, "<Esc>"]);
+    await expect.poll(async () => (await read(page)).courseIndex).toBe(index + 1);
+    // Prompted edits are always assisted; an independent edit becomes assisted once reminded.
+    expect((await read(page)).attempts.at(-1)!.assisted).toBe(true);
+  });
+test("undo reminders stay quiet for a change that moves toward the goal", async ({ page }) => {
+  await openAt(page, 4, {
+    settings: { ...newProgress().settings, undoReminders: true },
+  });
+  await keys(page, COURSE[4].solutionKeys);
+  await expect.poll(async () => (await read(page)).courseIndex).toBe(5);
+  expect((await read(page)).attempts.at(-1)!.assisted).toBe(false);
+});
