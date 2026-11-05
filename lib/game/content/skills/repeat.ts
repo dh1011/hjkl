@@ -22,7 +22,7 @@ export const repeat = defineSkill({
       target: "Report A: 1\nReport B: 1",
       assistance: "guided",
       explanation: ". repeats the last text change at your current position. Make the first edit, move to the second entry, and press dot. Moving the cursor does not replace the remembered edit. gg reaches the first line, G the last, and 0 the line start; j and l move to the next location.",
-      solutionKeys: ["r", "1", "g", "g", "j", "0", "l", "l", "l", "l", "l", "l", "l", "l", "l", "l", "."],
+      solutionKeys: ["r", "1", "j", "."],
       coaching: [
         {
           document: "Report A: 0\nReport B: 0",
@@ -51,7 +51,7 @@ export const repeat = defineSkill({
       target: "Invoice: ready\nReview: ready",
       assistance: "guided",
       explanation: ". repeats the last text change at your current position. Make the first edit, move to the second entry, and press dot. Moving the cursor does not replace the remembered edit. gg reaches the first line, G the last, and 0 the line start; j and l move to the next location.",
-      solutionKeys: ["c", "i", "w", "r", "e", "a", "d", "y", "<Esc>", "g", "g", "j", "0", "l", "l", "l", "l", "l", "l", "l", "l", "."],
+      solutionKeys: ["c", "i", "w", "r", "e", "a", "d", "y", "<Esc>", "j", "."],
       coaching: [
         {
           document: "Invoice: pending\nReview: pending",
@@ -80,7 +80,7 @@ export const repeat = defineSkill({
       target: "Service\nReview",
       assistance: "prompted",
       explanation: ". repeats the last text change at your current position. Make the first edit, move to the second entry, and press dot. Moving the cursor does not replace the remembered edit. gg reaches the first line, G the last, and 0 the line start; j and l move to the next location.",
-      solutionKeys: ["x", "g", "g", "j", "0", "."],
+      solutionKeys: ["x", "j", "."],
       coaching: [
         {
           document: "?Service\n?Review",
@@ -109,7 +109,7 @@ export const repeat = defineSkill({
       target: "Ticket A: 1\nTicket B: 1",
       assistance: "prompted",
       explanation: ". repeats the last text change at your current position. Make the first edit, move to the second entry, and press dot. Moving the cursor does not replace the remembered edit. gg reaches the first line, G the last, and 0 the line start; j and l move to the next location.",
-      solutionKeys: ["r", "1", "g", "g", "j", "0", "l", "l", "l", "l", "l", "l", "l", "l", "l", "l", "."],
+      solutionKeys: ["r", "1", "j", "."],
       coaching: [
         {
           document: "Ticket A: 0\nTicket B: 0",
@@ -138,7 +138,7 @@ export const repeat = defineSkill({
       target: "Release: ready\nReview: ready",
       assistance: "independent",
       explanation: ". repeats the last text change at your current position. Make the first edit, move to the second entry, and press dot. Moving the cursor does not replace the remembered edit. gg reaches the first line, G the last, and 0 the line start; j and l move to the next location.",
-      solutionKeys: ["c", "i", "w", "r", "e", "a", "d", "y", "<Esc>", "g", "g", "j", "0", "l", "l", "l", "l", "l", "l", "l", "l", "."],
+      solutionKeys: ["c", "i", "w", "r", "e", "a", "d", "y", "<Esc>", "j", "."],
       coaching: [
         {
           document: "Release: pending\nReview: pending",
@@ -167,7 +167,7 @@ export const repeat = defineSkill({
       target: "Task\nReview",
       assistance: "independent",
       explanation: ". repeats the last text change at your current position. Make the first edit, move to the second entry, and press dot. Moving the cursor does not replace the remembered edit. gg reaches the first line, G the last, and 0 the line start; j and l move to the next location.",
-      solutionKeys: ["x", "g", "g", "j", "0", "."],
+      solutionKeys: ["x", "j", "."],
       coaching: [
         {
           document: "?Task\n?Review",
@@ -196,7 +196,7 @@ export const repeat = defineSkill({
       target: "Agenda A: 1\nAgenda B: 1",
       assistance: "independent",
       explanation: ". repeats the last text change at your current position. Make the first edit, move to the second entry, and press dot. Moving the cursor does not replace the remembered edit. gg reaches the first line, G the last, and 0 the line start; j and l move to the next location.",
-      solutionKeys: ["r", "1", "g", "g", "j", "0", "l", "l", "l", "l", "l", "l", "l", "l", "l", "l", "."],
+      solutionKeys: ["r", "1", "j", "."],
       coaching: [
         {
           document: "Agenda A: 0\nAgenda B: 0",
@@ -225,7 +225,7 @@ export const repeat = defineSkill({
       target: "Receipt: ready\nReview: ready",
       assistance: "independent",
       explanation: ". repeats the last text change at your current position. Make the first edit, move to the second entry, and press dot. Moving the cursor does not replace the remembered edit. gg reaches the first line, G the last, and 0 the line start; j and l move to the next location.",
-      solutionKeys: ["c", "i", "w", "r", "e", "a", "d", "y", "<Esc>", "g", "g", "j", "0", "l", "l", "l", "l", "l", "l", "l", "l", "."],
+      solutionKeys: ["c", "i", "w", "r", "e", "a", "d", "y", "<Esc>", "j", "."],
       coaching: [
         {
           document: "Receipt: pending\nReview: pending",
@@ -254,7 +254,7 @@ export const repeat = defineSkill({
       target: "Worker\nReview",
       assistance: "independent",
       explanation: ". repeats the last text change at your current position. Make the first edit, move to the second entry, and press dot. Moving the cursor does not replace the remembered edit. gg reaches the first line, G the last, and 0 the line start; j and l move to the next location.",
-      solutionKeys: ["x", "g", "g", "j", "0", "."],
+      solutionKeys: ["x", "j", "."],
       coaching: [
         {
           document: "?Worker\n?Review",
@@ -283,7 +283,7 @@ export const repeat = defineSkill({
       target: "Request A: 1\nRequest B: 1",
       assistance: "independent",
       explanation: ". repeats the last text change at your current position. Make the first edit, move to the second entry, and press dot. Moving the cursor does not replace the remembered edit. gg reaches the first line, G the last, and 0 the line start; j and l move to the next location.",
-      solutionKeys: ["r", "1", "g", "g", "j", "0", "l", "l", "l", "l", "l", "l", "l", "l", "l", "l", "l", "."],
+      solutionKeys: ["r", "1", "j", "."],
       coaching: [
         {
           document: "Request A: 0\nRequest B: 0",
@@ -312,7 +312,7 @@ export const repeat = defineSkill({
       target: "Backup: ready\nReview: ready",
       assistance: "independent",
       explanation: ". repeats the last text change at your current position. Make the first edit, move to the second entry, and press dot. Moving the cursor does not replace the remembered edit. gg reaches the first line, G the last, and 0 the line start; j and l move to the next location.",
-      solutionKeys: ["c", "i", "w", "r", "e", "a", "d", "y", "<Esc>", "g", "g", "j", "0", "l", "l", "l", "l", "l", "l", "l", "l", "."],
+      solutionKeys: ["c", "i", "w", "r", "e", "a", "d", "y", "<Esc>", "j", "."],
       coaching: [
         {
           document: "Backup: pending\nReview: pending",
@@ -341,7 +341,7 @@ export const repeat = defineSkill({
       target: "Job\nReview",
       assistance: "independent",
       explanation: ". repeats the last text change at your current position. Make the first edit, move to the second entry, and press dot. Moving the cursor does not replace the remembered edit. gg reaches the first line, G the last, and 0 the line start; j and l move to the next location.",
-      solutionKeys: ["x", "g", "g", "j", "0", "."],
+      solutionKeys: ["x", "j", "."],
       coaching: [
         {
           document: "?Job\n?Review",

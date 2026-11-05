@@ -35,7 +35,7 @@ const commands = {
   ciw: {
     key: "ciw",
     meaning:
-      "Change the word under the cursor, then type its replacement in Insert mode.",
+      "Change the word under the cursor, then type its replacement in Insert mode. It works anywhere in the word; from its first letter, cw or ce does the same.",
     example: "[r]ed apples → green apples: press ciw, then type green.",
   },
   j: {
@@ -62,7 +62,8 @@ const commands = {
   },
   d: {
     key: "d",
-    meaning: "Delete the text selected in Visual mode.",
+    meaning:
+      "Delete the text selected in Visual mode. Visual mode handles any span; for a whole word and its space, dw is shorter.",
     example: "Select “very ” in “very ready”, then d leaves “ready”.",
   },
   p: {
@@ -104,7 +105,8 @@ const commands = {
   },
   r: {
     key: "r",
-    meaning: "Replace the character under the cursor.",
+    meaning:
+      "Replace the character under the cursor. For a number, Ctrl-A adds one and Ctrl-X subtracts one, carrying digits as needed.",
     example: "r3 changes [0] to 3.",
   },
   yy: {
@@ -159,7 +161,8 @@ const commands = {
   },
   t: {
     key: "t",
-    meaning: "Move just before the next occurrence of a character.",
+    meaning:
+      "Move just before the next occurrence of a character. To land on a character itself, f is usually shorter than t plus another move.",
     example: "t: stops just before the next colon.",
   },
   T: {

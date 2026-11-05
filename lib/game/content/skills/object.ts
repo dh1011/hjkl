@@ -89,7 +89,7 @@ export const object = defineSkill({
       target: "[]\nRemove notes",
       assistance: "prompted",
       explanation: "ci\" changes inside double quotes, ci' inside single quotes, and ci( inside parentheses. Delimiters stay intact. diw deletes the inner word; daw also removes adjacent space. Type a replacement after c.",
-      solutionKeys: ["d", "i", "w", "g", "g", "j", "0", "l", "l", "l", "l", "l", "l", "l", "d", "a", "w"],
+      solutionKeys: ["d", "i", "w", "j", "w", "d", "a", "w"],
       coaching: [
         {
           document: "[draft]\nRemove old notes",
@@ -228,7 +228,7 @@ export const object = defineSkill({
       target: "[]\nRemove notes",
       assistance: "independent",
       explanation: "ci\" changes inside double quotes, ci' inside single quotes, and ci( inside parentheses. Delimiters stay intact. diw deletes the inner word; daw also removes adjacent space. Type a replacement after c.",
-      solutionKeys: ["d", "i", "w", "g", "g", "j", "0", "l", "l", "l", "l", "l", "l", "l", "d", "a", "w"],
+      solutionKeys: ["d", "i", "w", "j", "w", "d", "a", "w"],
       coaching: [
         {
           document: "[unused]\nRemove old notes",
