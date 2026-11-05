@@ -37,8 +37,8 @@ export function SiteIntro() {
           Type <kbd>:help</kbd> in Normal mode for the current commands.
         </p>
         <p>
-          Free, no account, nothing stored. Requires a desktop browser with a
-          physical keyboard.
+          Free and no account. Nothing is stored unless you turn on Remember
+          progress. Requires a desktop browser with a physical keyboard.
         </p>
       </section>
       <nav className="site-links" aria-label="More">

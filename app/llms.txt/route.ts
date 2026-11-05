@@ -11,7 +11,7 @@ const body = `# ${SITE_TITLE}
 
 > ${SITE_DESCRIPTION}
 
-hjkl is a free, keyboard-first Vim learning game that runs in a desktop browser. Learners pick skills, then make short, real edits in a CodeMirror Vim editor until the text matches a target. Each selected skill runs two guided edits (live hint below the editor), two prompted edits (hint until editing starts), then two independent edits. Any valid edit sequence that produces the target passes. There is no account, sign-up, or saved data; progress lives in memory while the page is open. A physical keyboard and a viewport at least 768px wide are required.
+hjkl is a free, keyboard-first Vim learning game that runs in a desktop browser. Learners pick skills, then make short, real edits in a CodeMirror Vim editor until the text matches a target. Each selected skill runs two guided edits (live hint below the editor), two prompted edits (hint until editing starts), then two independent edits. Any valid edit sequence that produces the target passes. There is no account or sign-up. Progress lives in memory while the page is open, unless the learner turns on Remember progress, which keeps the run in browser storage. A physical keyboard and a viewport at least 768px wide are required.
 
 Made by [${AUTHOR.name}](${AUTHOR.url}).
 

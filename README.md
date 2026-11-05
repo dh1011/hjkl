@@ -15,7 +15,7 @@
 
 Pick the skills you want to learn. Each one has two guided edits, two prompted edits and two independent edits. An edit passes as soon as the text matches the goal, so any valid approach counts. Type `:help` in Normal mode for the current level's commands.
 
-hjkl runs entirely in the browser, with no accounts or storage. It needs a physical keyboard and a screen at least 768 px wide.
+hjkl runs entirely in the browser, with no accounts. Nothing is stored unless you turn on **Remember progress** in Settings. It needs a physical keyboard and a screen at least 768 px wide.
 
 ## Development
 
