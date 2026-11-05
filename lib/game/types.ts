@@ -104,6 +104,8 @@ export interface ProgressState {
   courseIndex: number;
   sectionOrder: string[];
   selectedSkills?: Skill[];
+  /** The selected skills were shuffled; run them in `selectedSkills` order. */
+  shuffledSkills?: boolean;
   attempts: AttemptResult[];
   lastActive: number;
   session: string;
