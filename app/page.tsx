@@ -30,7 +30,12 @@ import { practicePuzzle, SKILLS, SKILL_METADATA } from "@/lib/game/curriculum";
 import { courseForRun, courseForSkills } from "@/lib/game/run";
 import { displayKey, evaluate, mastery, recovery } from "@/lib/game/engine";
 import { GameEditor } from "@/lib/game/editor";
-import { initializeProgress, SESSION_GAP } from "@/lib/game/progress";
+import {
+  forgetProgress,
+  initializeProgress,
+  saveProgress,
+  SESSION_GAP,
+} from "@/lib/game/progress";
 import type {
   AttemptResult,
   EditorSnapshot,
@@ -123,6 +128,7 @@ function DesktopGame() {
   const commit = useCallback((s: ProgressState) => {
     data.current = s;
     setState(s);
+    saveProgress(s);
   }, []);
   useEffect(() => {
     initializeProgress(data);
@@ -130,10 +136,22 @@ function DesktopGame() {
     queueMicrotask(() => {
       if (!mounted) return;
       setState(data.current);
+      // A remembered run reopens where it was left; there is no Resume step.
+      if (data.current?.settings.remember && data.current.selectedSkills)
+        setLanding(false);
       if (data.current?.celebration !== undefined) setPhase("celebration");
     });
+    // Keystrokes update the unfinished buffer without a commit.
+    const save = () => saveProgress(data.current);
+    const hidden = () => {
+      if (document.visibilityState === "hidden") save();
+    };
+    window.addEventListener("pagehide", save);
+    document.addEventListener("visibilitychange", hidden);
     return () => {
       mounted = false;
+      window.removeEventListener("pagehide", save);
+      document.removeEventListener("visibilitychange", hidden);
       if (timer.current) clearTimeout(timer.current);
     };
   }, [data]);
@@ -237,6 +255,7 @@ function DesktopGame() {
       }
       // Record the advance before the animation finishes.
       data.current = n;
+      saveProgress(n);
       timer.current = setTimeout(() => {
         phaseRef.current =
           data.current!.celebration !== undefined ? "celebration" : "playing";
@@ -1004,7 +1023,7 @@ function DesktopGame() {
               {panel === "assist"
                 ? "Your edit will be here when you return."
                 : panel === "journey"
-                  ? `${Math.min(completed, COURSE.length)} / ${COURSE.length} challenges complete. Progress resets when you refresh or close this page.`
+                  ? `${Math.min(completed, COURSE.length)} / ${COURSE.length} challenges complete. ${state?.settings.remember ? "Progress is saved in this browser." : "Progress resets when you refresh or close this page."}`
                   : panel === "practice"
                     ? "Pick skills for your course. Each starts with two guided edits, then two prompted edits, then two independent edits."
                     : panel === "help"
@@ -1236,6 +1255,23 @@ function DesktopGame() {
                       } catch {}
                     }
                     setting({ sound });
+                  }}
+                />
+              </div>
+              <div className="setting-row">
+                <div>
+                  <h3>Remember progress</h3>
+                  <p>
+                    Keep this run in this browser and reopen it after a reload.
+                    Turning it off deletes the saved copy.
+                  </p>
+                </div>
+                <Switch
+                  aria-label="Remember progress"
+                  checked={state?.settings.remember ?? false}
+                  onCheckedChange={(remember) => {
+                    if (!remember) forgetProgress();
+                    setting({ remember });
                   }}
                 />
               </div>

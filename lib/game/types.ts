@@ -112,6 +112,8 @@ export interface ProgressState {
     theme: "ink" | "paper";
     cursor: boolean;
     effect: boolean;
+    /** Opt-in: keep this run in browser storage and restore it after a reload. */
+    remember?: boolean;
   };
   active?: SavedAttempt;
   review: string[];

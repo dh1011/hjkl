@@ -333,3 +333,66 @@ test("the target document passes in any mode, while meaningful whitespace still 
     }
   }
 });
+test("opt-in Remember progress restores the run after a reload and forgets it when turned off", async ({
+  context,
+}) => {
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.locator("#landing-practice-typo").click();
+  await page.getByRole("button", { name: "Start" }).click();
+  const editor = page.getByRole("textbox", { name: "Vim practice editor" });
+  await expect(editor).toBeFocused();
+  await page.keyboard.press("x");
+  await expect(page.locator("main")).toHaveAttribute("data-puzzle", "typo-1");
+  const openSettings = async () => {
+    await page.keyboard.type(":help");
+    await page.keyboard.press("Enter");
+    await page.getByRole("button", { name: "More options", exact: true }).click();
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
+  };
+  expect(await page.evaluate(() => localStorage.length)).toBe(0);
+  await openSettings();
+  await page.getByRole("switch", { name: "Remember progress" }).click();
+  await page.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(editor).toBeFocused();
+  const before = await editor.innerText();
+  await page.keyboard.press("0");
+  await page.keyboard.press("x");
+  const changed = await editor.innerText();
+  expect(changed).not.toBe(before);
+
+  await page.reload();
+  await expect(page.locator(".selection-page")).toHaveCount(0);
+  await expect(page.locator("main")).toHaveAttribute("data-puzzle", "typo-1");
+  await expect(editor).toHaveText(changed, { useInnerText: true });
+
+  await openSettings();
+  const toggle = page.getByRole("switch", { name: "Remember progress" });
+  await expect(toggle).toBeChecked();
+  await toggle.click();
+  expect(await page.evaluate(() => localStorage.getItem("hjkl:progress:v1"))).toBeNull();
+  await page.getByRole("button", { name: "Close", exact: true }).click();
+  await page.reload();
+  await expect(page.locator(".selection-page")).toBeVisible();
+});
+test("a saved run from different course content starts fresh and is removed", async ({ context }) => {
+  const page = await context.newPage();
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem("seeded")) return;
+    sessionStorage.setItem("seeded", "1");
+    localStorage.setItem(
+      "hjkl:progress:v1",
+      JSON.stringify({
+        course: "typo-0,removed-challenge",
+        state: {
+          version: 1, courseIndex: 1, sectionOrder: [], selectedSkills: ["typo"], attempts: [],
+          lastActive: 0, session: "s", review: [], reviewIndex: 0,
+          settings: { sound: false, theme: "ink", cursor: false, effect: false, remember: true },
+        },
+      }),
+    );
+  });
+  await page.goto("/");
+  await expect(page.locator(".selection-page")).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("hjkl:progress:v1"))).toBeNull();
+});
