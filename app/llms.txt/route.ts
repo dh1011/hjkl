@@ -1,5 +1,6 @@
 import {
   AUTHOR,
+  REPO_URL,
   SITE_DESCRIPTION,
   SITE_TITLE,
   SITE_URL,
@@ -18,6 +19,7 @@ Made by [${AUTHOR.name}](${AUTHOR.url}).
 
 - [Play hjkl](${SITE_URL}/): pick skills and start practicing
 - [Vim commands cheat sheet](${SITE_URL}/commands): every command taught, grouped by skill
+- [Source code](${REPO_URL}): MIT-licensed repository on GitHub
 - [duy.run](${AUTHOR.url}): ${AUTHOR.name}'s other tools and projects
 
 ## Skills and commands

@@ -12,7 +12,7 @@ import { GameMark } from "@/components/game-mark";
 import { GameObjective } from "@/components/game-objective";
 import { WormGame } from "@/components/worm-game";
 import { SiteIntro } from "@/components/site-intro";
-import { AUTHOR } from "@/lib/site";
+import { AUTHOR, REPO_URL } from "@/lib/site";
 import { Progress } from "@/components/ui/progress";
 import { nextCue, documentGoal } from "@/lib/game/coaching";
 import { moveFocus } from "@/lib/spatial-focus";
@@ -815,6 +815,9 @@ function DesktopGame() {
               <kbd>h j k l</kbd> move · <kbd>space</kbd> select · <kbd>a</kbd>{" "}
               all · <kbd>n</kbd> none · <kbd>ctrl enter</kbd> start
             </p>
+            <a className="selection-credit" href={REPO_URL}>
+              GitHub
+            </a>
             <a className="selection-credit" href={AUTHOR.url} rel="author">
               duy.run
             </a>

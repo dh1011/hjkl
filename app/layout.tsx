@@ -4,6 +4,7 @@ import "@fontsource/space-mono/400.css";
 import "@fontsource/space-mono/700.css";
 import {
   AUTHOR,
+  REPO_URL,
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_TAGLINE,
@@ -113,6 +114,17 @@ const structuredData = {
       isPartOf: { "@id": `${SITE_URL}/#website` },
       author: { "@id": `${AUTHOR.url}/#person` },
       creator: { "@id": `${AUTHOR.url}/#person` },
+      sameAs: [REPO_URL],
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "@id": `${REPO_URL}#code`,
+      name: SITE_NAME,
+      codeRepository: REPO_URL,
+      license: "https://opensource.org/licenses/MIT",
+      programmingLanguage: "TypeScript",
+      targetProduct: { "@id": `${SITE_URL}/#app` },
+      author: { "@id": `${AUTHOR.url}/#person` },
     },
   ],
 };

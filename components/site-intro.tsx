@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { GameMark } from "@/components/game-mark";
-import { AUTHOR, SITE_DESCRIPTION, SITE_TAGLINE, SKILL_SUMMARIES } from "@/lib/site";
+import { AUTHOR, REPO_URL, SITE_DESCRIPTION, SITE_TAGLINE, SKILL_SUMMARIES } from "@/lib/site";
 
 // Server-rendered before the game mounts, so crawlers and agents that do not run
 // JavaScript still see what the app teaches.
@@ -44,6 +44,7 @@ export function SiteIntro() {
       <nav className="site-links" aria-label="More">
         <Link href="/commands">Vim commands cheat sheet</Link>
         <a href="/llms.txt">llms.txt</a>
+        <a href={REPO_URL}>Source on GitHub</a>
         <a href={AUTHOR.url} rel="author">Made by {AUTHOR.name} · duy.run</a>
       </nav>
     </main>

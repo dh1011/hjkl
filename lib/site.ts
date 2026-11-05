@@ -5,6 +5,7 @@ export const SITE_NAME = "hjkl";
 export const SITE_TITLE = "hjkl — learn Vim by doing";
 export const SITE_TAGLINE = "Little edits. Lasting skills.";
 export const AUTHOR = { name: "Duy Hua", url: "https://duy.run" };
+export const REPO_URL = "https://github.com/dh1011/hjkl";
 export const SITE_DESCRIPTION =
   "Learn Vim in your browser with short, hands-on editing challenges. Practice motions, text objects, search, marks, counts, and repeats in a real Vim editor — free, no sign-up.";
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GameMark } from "@/components/game-mark";
-import { AUTHOR, SITE_NAME, SITE_URL, SKILL_SUMMARIES } from "@/lib/site";
+import { AUTHOR, REPO_URL, SITE_NAME, SITE_URL, SKILL_SUMMARIES } from "@/lib/site";
 
 const title = "Vim commands cheat sheet";
 const description = `Vim commands taught in ${SITE_NAME}, grouped by skill: moving, inserting, changing words, text objects, search, find, counts, marks, jumps, Visual mode, copy and put, and repeat.`;
@@ -76,6 +76,7 @@ export default function Commands() {
       ))}
       <nav className="site-links" aria-label="More">
         <Link href="/">Practice these in hjkl →</Link>
+        <a href={REPO_URL}>Source on GitHub</a>
         <a href={AUTHOR.url} rel="author">Made by {AUTHOR.name} · duy.run</a>
       </nav>
     </main>
