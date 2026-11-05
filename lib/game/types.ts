@@ -112,6 +112,8 @@ export interface ProgressState {
     theme: "ink" | "paper";
     cursor: boolean;
     effect: boolean;
+    /** Opt-in: hide automatic guided and prompted cues; goals and manual hints stay. */
+    hidePrompts?: boolean;
   };
   active?: SavedAttempt;
   review: string[];

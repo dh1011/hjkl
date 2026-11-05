@@ -467,9 +467,13 @@ function DesktopGame() {
   const inFinal = !!current.objectives;
   const isLongDocument = current.initial.split("\n").length >= 15;
   const cue = nextCue(current, snapshot);
-  // Only guided lessons point the way back after a mistake.
+  // Only guided lessons point the way back after a mistake, unless the
+  // learner has chosen to hide prompts and practise from the goal alone.
+  const hidePrompts = !!state?.settings.hidePrompts;
   const problem =
-    current.assistance === "guided" ? recovery(current, snapshot) : undefined;
+    current.assistance === "guided" && !hidePrompts
+      ? recovery(current, snapshot)
+      : undefined;
   const statusLine = nudge || problem;
   const hintText =
     hint === 1
@@ -486,6 +490,7 @@ function DesktopGame() {
           : current.goal;
   const showCue =
     phase === "playing" &&
+    !hidePrompts &&
     !statusLine &&
     hint === 0 &&
     (current.assistance === "guided" ||
@@ -1237,6 +1242,19 @@ function DesktopGame() {
                     }
                     setting({ sound });
                   }}
+                />
+              </div>
+              <div className="setting-row">
+                <div>
+                  <h3>Hide prompts</h3>
+                  <p>
+                    Practise from the goal alone. Hints stay one :help away.
+                  </p>
+                </div>
+                <Switch
+                  aria-label="Hide prompts"
+                  checked={hidePrompts}
+                  onCheckedChange={(hide) => setting({ hidePrompts: hide })}
                 />
               </div>
               <div className="setting-row">

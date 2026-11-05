@@ -813,3 +813,33 @@ test(":help on a completed level cannot trigger the l continuation shortcut", as
   await expect(page.locator("main")).toHaveAttribute("data-puzzle", "word-0");
   await expect(editor(page)).toBeFocused();
 });
+for (const [index, assistance] of [[6, "guided"], [2, "prompted"]] as const)
+  test(`opt-in Hide prompts removes automatic ${assistance} cues but keeps hints`, async ({ page }) => {
+    expect(COURSE[index].assistance).toBe(assistance);
+    await openAt(page, index, {
+      settings: { ...newProgress().settings, hidePrompts: true },
+    });
+    await expect(page.locator("main")).toHaveAttribute("data-phase", "playing");
+    await expect(page.getByRole("heading", { name: COURSE[index].goal })).toBeVisible();
+    await expect(page.locator(".next-cue, .hint-box")).toHaveCount(0);
+    await keys(page, ["d", "d"]);
+    await expect(page.getByRole("status")).toHaveCount(0);
+    await keys(page, ["u", ...":help", "<CR>"]);
+    await page.getByRole("button", { name: "Get a hint", exact: true }).click();
+    await expect(page.locator(".hint-box")).toContainText(COURSE[index].explanation);
+    await keys(page, ["c", "c", ...COURSE[index].target, "<Esc>"]);
+    await expect.poll(async () => (await read(page)).courseIndex).toBe(index + 1);
+  });
+test("Hide prompts is off by default and turning it off restores the cue", async ({ page }) => {
+  await openAt(page, 6, { settings: { ...newProgress().settings, hidePrompts: true } });
+  await expect(page.locator(".next-cue")).toHaveCount(0);
+  await keys(page, [...":help", "<CR>"]);
+  await page.getByRole("button", { name: "More options", exact: true }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  const toggle = page.getByRole("switch", { name: "Hide prompts" });
+  await expect(toggle).toBeChecked();
+  await toggle.click();
+  await page.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(page.locator(".next-cue kbd")).toHaveText("ciw");
+  expect(newProgress().settings.hidePrompts ?? false).toBe(false);
+});
