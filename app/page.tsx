@@ -50,6 +50,7 @@ const EMPTY: EditorSnapshot = {
   lastCommand: "",
   selectionMatched: false,
 };
+const FINISH_IN_NORMAL = "Text matches. Press esc to finish.";
 function DesktopGame() {
   const [state, setState] = useState<ProgressState | null>(null);
   const data = useRef<ProgressState | null>(null);
@@ -297,7 +298,11 @@ function DesktopGame() {
             hints: hintRef.current,
           },
         };
-        if (evaluate(p, s).complete) complete(s);
+        if (!evaluate(p, s).complete) return;
+        // Opt-in habit practice: the text is right, but the edit is not closed yet.
+        if (data.current.settings.finishInNormal && (s.mode !== "normal" || s.pending))
+          setNudge(FINISH_IN_NORMAL);
+        else complete(s);
       },
     });
     adapter.current = editor;
@@ -1237,6 +1242,17 @@ function DesktopGame() {
                     }
                     setting({ sound });
                   }}
+                />
+              </div>
+              <div className="setting-row">
+                <div>
+                  <h3>Finish in Normal mode</h3>
+                  <p>Correct text passes only after you press esc.</p>
+                </div>
+                <Switch
+                  aria-label="Finish in Normal mode"
+                  checked={state?.settings.finishInNormal ?? false}
+                  onCheckedChange={(finishInNormal) => setting({ finishInNormal })}
                 />
               </div>
               <div className="setting-row">

@@ -813,3 +813,35 @@ test(":help on a completed level cannot trigger the l continuation shortcut", as
   await expect(page.locator("main")).toHaveAttribute("data-puzzle", "word-0");
   await expect(editor(page)).toBeFocused();
 });
+test("opt-in Finish in Normal mode holds correct Insert text until esc", async ({
+  page,
+}) => {
+  await openAt(page, 6, {
+    settings: { ...newProgress().settings, finishInNormal: true },
+  });
+  await keys(page, ["c", "i", "w", ..."tomato"]);
+  await expect(page.getByRole("status")).toHaveText(
+    "Text matches. Press esc to finish.",
+  );
+  await page.waitForTimeout(900);
+  expect((await read(page)).courseIndex).toBe(6);
+  await expect(page.locator(".editor-panel")).toHaveAttribute("data-mode", "insert");
+  await keys(page, ["<Esc>"]);
+  await expect.poll(async () => (await read(page)).courseIndex).toBe(7);
+  expect((await read(page)).attempts.at(-1)!.demonstrated).toContain("word");
+});
+test("Finish in Normal mode is off by default and can be turned on in settings", async ({
+  page,
+}) => {
+  await openAt(page, 6);
+  expect((await read(page)).settings.finishInNormal ?? false).toBe(false);
+  await page.keyboard.type(":help");
+  await page.keyboard.press("Enter");
+  await page.getByRole("button", { name: "More options", exact: true }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  const toggle = page.getByRole("switch", { name: "Finish in Normal mode" });
+  await expect(toggle).not.toBeChecked();
+  await toggle.click();
+  await expect(toggle).toBeChecked();
+  expect((await read(page)).settings.finishInNormal).toBe(true);
+});
