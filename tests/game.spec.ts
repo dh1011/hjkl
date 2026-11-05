@@ -813,3 +813,49 @@ test(":help on a completed level cannot trigger the l continuation shortcut", as
   await expect(page.locator("main")).toHaveAttribute("data-puzzle", "word-0");
   await expect(editor(page)).toBeFocused();
 });
+test("Visual Ctrl-A and Ctrl-X change a number on every selected line, like Vim", async ({
+  page,
+}) => {
+  await openAt(page);
+  const results = await page.evaluate(async () => {
+    // @ts-expect-error Vite browser module imports
+    const { COURSE } = await import("/lib/game/curriculum.ts");
+    // @ts-expect-error Vite browser module imports
+    const { GameEditor, isolateVim } = await import("/lib/game/editor.ts");
+    const restore = isolateVim();
+    const cases: [string, string[]][] = [
+      ["0\n0", ["<C-v>", "j", "<C-a>"]],
+      ["0\n0", ["V", "j", "<C-a>"]],
+      ["0\n0\n0", ["V", "j", "j", "g", "<C-a>"]],
+      ["0\n0\n0", ["V", "j", "j", "3", "<C-a>"]],
+      ["a 9 b\nc 9 d", ["<C-v>", "j", "l", "l", "<C-x>"]],
+      ["1 5\n1 5", ["l", "l", "<C-v>", "j", "<C-a>"]],
+      ["x 7 y", ["<C-a>"]],
+      ["0\n0", ["<C-v>", "j", "<C-a>", "u"]],
+    ];
+    const out: { document: string; mode: string }[] = [];
+    for (const [initial, steps] of cases) {
+      const parent = document.createElement("div");
+      document.body.appendChild(parent);
+      const game = new GameEditor({
+        puzzle: { ...COURSE[0], initial, cursor: 0, target: "-" },
+        parent,
+        onChange: () => {},
+        onNudge: () => {},
+        locked: () => false,
+      });
+      for (const key of steps) game.feed(key);
+      const snap = game.snapshot();
+      out.push({ document: snap.document, mode: snap.mode });
+      game.destroy();
+      parent.remove();
+    }
+    restore();
+    return out;
+  });
+  expect(results).toEqual(
+    ["1\n1", "1\n1", "1\n2\n3", "3\n3\n3", "a 8 b\nc 8 d", "1 6\n1 6", "x 8 y", "0\n0"].map(
+      (document) => ({ document, mode: "normal" }),
+    ),
+  );
+});

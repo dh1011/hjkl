@@ -27,6 +27,76 @@ interface Options {
 const helpActions = new WeakMap<object, () => void>();
 Vim.defineEx("help", "h", (cm) => helpActions.get(cm)?.());
 
+/** Adds `delta` to the first number inside `segment`, keeping base and padding like Normal-mode Ctrl-A. */
+export function incrementInSegment(segment: string, delta: number) {
+  const match = /(-?)(?:(0x)([\da-f]+)|(0b|0|)(\d+))/i.exec(segment);
+  if (!match) return;
+  const prefix = match[2] || match[4];
+  const digits = match[3] || match[5];
+  const base = ({ "0b": 2, "0": 8, "": 10, "0x": 16 } as const)[
+    prefix.toLowerCase() as "0b" | "0" | "" | "0x"
+  ];
+  const value = parseInt(match[1] + digits, base) + delta;
+  const magnitude = Math.abs(value).toString(base);
+  const padded = prefix ? magnitude.padStart(digits.length, "0") : magnitude;
+  return {
+    from: match.index,
+    to: match.index + match[0].length,
+    text: `${value < 0 ? "-" : ""}${prefix}${padded}`,
+  };
+}
+
+// Vim 8 increments a number on every highlighted line ({Visual}CTRL-A and
+// {Visual}g CTRL-A). The bundled engine only knows the Normal-mode command,
+// which changes the cursor line alone.
+type VimPos = { line: number; ch: number };
+type VimCm = {
+  getLine(line: number): string;
+  replaceRange(text: string, from: VimPos, to: VimPos): void;
+  setCursor(pos: VimPos): void;
+};
+type VisualState = {
+  sel: { anchor: VimPos; head: VimPos };
+  visualLine: boolean;
+  visualBlock: boolean;
+};
+Vim.defineAction(
+  "visualIncrement",
+  (rawCm, rawArgs, rawVim) => {
+    const cm = rawCm as unknown as VimCm;
+    const vim = rawVim as unknown as VisualState;
+    const args = rawArgs as { increase?: boolean; progressive?: boolean; repeat?: number };
+    const { anchor, head } = vim.sel;
+    const [start, end] =
+      anchor.line < head.line || (anchor.line === head.line && anchor.ch <= head.ch)
+        ? [anchor, head]
+        : [head, anchor];
+    const step = (args.increase ? 1 : -1) * (args.repeat ?? 1);
+    const left = Math.min(anchor.ch, head.ch);
+    const right = Math.max(anchor.ch, head.ch) + 1;
+    let changed = 0;
+    for (let line = start.line; line <= end.line; line++) {
+      const text = cm.getLine(line);
+      const from = vim.visualLine ? 0 : vim.visualBlock ? left : line === start.line ? start.ch : 0;
+      const to = vim.visualLine ? text.length : vim.visualBlock ? right : line === end.line ? end.ch + 1 : text.length;
+      const edit = incrementInSegment(text.slice(from, Math.min(to, text.length)), step * (args.progressive ? changed + 1 : 1));
+      if (!edit) continue;
+      changed++;
+      cm.replaceRange(edit.text, { line, ch: from + edit.from }, { line, ch: from + edit.to });
+    }
+    const startCh = vim.visualBlock ? left : vim.visualLine ? 0 : start.ch;
+    (Vim as unknown as { exitVisualMode(cm: unknown, moveHead?: boolean): void }).exitVisualMode(cm, false);
+    cm.setCursor({ line: start.line, ch: startCh });
+  },
+);
+for (const [keys, increase, progressive] of [
+  ["<C-a>", true, false],
+  ["<C-x>", false, false],
+  ["g<C-a>", true, true],
+  ["g<C-x>", false, true],
+] as const)
+  Vim.mapCommand(keys, "action", "visualIncrement", { increase, progressive }, { context: "visual", isEdit: true });
+
 export class GameEditor {
   view: EditorView;
   private options: Options;
