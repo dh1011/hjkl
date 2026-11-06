@@ -39,7 +39,11 @@ export function nextCue(p: PuzzleSpec, s: EditorSnapshot): Cue {
         : key,
     text,
   });
-  if (s.document === p.target) return { text: "Text is correct." };
+  if (s.document === p.target)
+    // Edits finish in Normal mode, like closing a real Vim edit.
+    return s.mode === "normal" && !s.pending
+      ? { text: "Text is correct." }
+      : { key: "<Esc>", text: "Press esc to finish." };
 
   if (p.objectives)
     return s.mode === "normal"

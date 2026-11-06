@@ -8,8 +8,9 @@ import type {
 import { COURSE, SKILLS, VARIANTS } from "./curriculum";
 export function evaluate(p: PuzzleSpec, s: EditorSnapshot) {
   const correct = s.document === p.target;
-  // Passing depends on the document. Observed commands only inform mastery.
-  return { correct, complete: correct };
+  // Passing depends on the document, finished like a real edit: back in
+  // Normal mode with no pending command. Observed commands only inform mastery.
+  return { correct, complete: correct && s.mode === "normal" && !s.pending };
 }
 export function mastery(skill: Skill, attempts: AttemptResult[]) {
   const relevant = attempts.filter(

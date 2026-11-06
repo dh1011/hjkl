@@ -310,7 +310,7 @@ test("undo clears evidence and Insert text does not prove the commands it spells
   ).toEqual(["insert"]);
 });
 
-test("the target document passes in any mode, while meaningful whitespace still matters", () => {
+test("the target document passes only once the edit is closed in Normal mode, and whitespace matters", () => {
   for (const puzzle of VARIANTS) {
     for (const mode of ["normal", "insert", "visual"] as const) {
       const snapshot: EditorSnapshot = {
@@ -325,7 +325,8 @@ test("the target document passes in any mode, while meaningful whitespace still 
         lastCommand: "",
         selectionMatched: false,
       };
-      expect(evaluate(puzzle, snapshot).complete).toBe(true);
+      expect(evaluate(puzzle, snapshot)).toEqual({ correct: true, complete: false });
+      expect(evaluate(puzzle, { ...snapshot, pending: false }).complete).toBe(mode === "normal");
       expect(
         evaluate(puzzle, { ...snapshot, document: puzzle.target + " " })
           .complete,

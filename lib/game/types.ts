@@ -112,8 +112,6 @@ export interface ProgressState {
     theme: "ink" | "paper";
     cursor: boolean;
     effect: boolean;
-    /** Opt-in: a correct edit only passes once the learner is back in Normal mode. */
-    finishInNormal?: boolean;
   };
   active?: SavedAttempt;
   review: string[];
