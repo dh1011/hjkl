@@ -300,6 +300,7 @@ test("pasting a correct new puzzle passes without technique credit", async ({
     ),
   );
   await page.keyboard.insertText(COURSE[37].target);
+  await page.keyboard.press("Escape");
   await expect.poll(async () => (await read(page)).courseIndex).toBe(38);
   expect((await read(page)).attempts.at(-1)!.demonstrated).toEqual([]);
 });

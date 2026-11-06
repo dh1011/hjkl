@@ -173,7 +173,7 @@ test("all authored puzzles validate against the Vim engine", async ({
   });
   expect(results).toEqual([]);
 });
-test("correct text in Insert advances automatically and retains observed technique", async ({
+test("correct text in Insert waits for esc, then advances and retains observed technique", async ({
   page,
 }) => {
   await openAt(page, 6);
@@ -184,6 +184,11 @@ test("correct text in Insert advances automatically and retains observed techniq
   );
   expect((await read(page)).courseIndex).toBe(6);
   await keys(page, [..."to"]);
+  await expect(page.getByRole("status")).toHaveText("Text matches. Press esc to finish.");
+  await page.waitForTimeout(900);
+  expect((await read(page)).courseIndex).toBe(6);
+  await expect(page.locator(".editor-panel")).toHaveAttribute("data-mode", "insert");
+  await keys(page, ["<Esc>"]);
   await expect.poll(async () => (await read(page)).courseIndex).toBe(7);
   expect((await read(page)).attempts.at(-1)!.demonstrated).toContain("word");
   await expect(page.locator("main")).toHaveAttribute("data-puzzle", "word-1");
@@ -207,7 +212,7 @@ test("navigation suggestions stay optional and undo recovery remains available",
   await expect(page.getByRole("status")).toContainText("Off track. Press u to undo.");
   await page.getByRole("button", { name: "u Undo", exact: true }).click();
   await expect(editor(page)).toHaveText("send cake tonight");
-  await keys(page, ["0", ...Array(5).fill("ArrowRight"), "c", "w", ..."pizza"]);
+  await keys(page, ["0", ...Array(5).fill("ArrowRight"), "c", "w", ..."pizza", "<Esc>"]);
   await expect.poll(async () => (await read(page)).courseIndex).toBe(8);
   expect((await read(page)).attempts.at(-1)!.demonstrated).not.toContain("word");
 });
@@ -470,6 +475,8 @@ test("guided cues follow typing and disappear as soon as the text is correct", a
   await expect(cue).toHaveText("ato");
   await keys(page, [..."ato"]);
   await expect(cue).toHaveCount(0);
+  await expect(page.getByRole("status")).toHaveText("Text matches. Press esc to finish.");
+  await keys(page, ["<Esc>"]);
   await expect(page.getByRole("heading")).toHaveText("Good edit.");
   await expect.poll(async () => (await read(page)).courseIndex).toBe(7);
 });
@@ -540,12 +547,12 @@ for (const index of [0, 6, 12, 18, 24]) {
       index === 0
         ? ["X"]
         : index === 6
-          ? ["c", "w", ..."tomato"]
+          ? ["c", "w", ..."tomato", "<Esc>"]
           : index === 12
             ? ["V", "d"]
             : index === 18
               ? ["d", "w"]
-              : ["g", "g", "d", "G", "i", ...p.target];
+              : ["g", "g", "d", "G", "i", ...p.target, "<Esc>"];
     await keys(page, alternative);
     await expect
       .poll(async () => (await read(page)).courseIndex)
@@ -595,6 +602,7 @@ test("pasting correct text in a guided lesson passes without claiming a Vim tech
       }),
     );
   });
+  await keys(page, ["<Esc>"]);
   await expect.poll(async () => (await read(page)).courseIndex).toBe(7);
   expect((await read(page)).attempts[0].demonstrated).toEqual([]);
 });

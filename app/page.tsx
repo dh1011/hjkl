@@ -297,7 +297,10 @@ function DesktopGame() {
             hints: hintRef.current,
           },
         };
-        if (evaluate(p, s).complete) complete(s);
+        const result = evaluate(p, s);
+        if (result.complete) complete(s);
+        // The text is right, but the edit is not closed yet.
+        else if (result.correct) setNudge("Text matches. Press esc to finish.");
       },
     });
     adapter.current = editor;
