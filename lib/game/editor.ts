@@ -47,6 +47,7 @@ export class GameEditor {
   private selectedMatch = false;
   private selectionMatched = false;
   private hasFreshKey = false;
+  private keystrokes = 0;
   private pendingFlush = false;
   private cut?: { text: string; before: string };
   constructor(options: Options) {
@@ -168,6 +169,7 @@ export class GameEditor {
       copied: this.yanked,
       repeatable: this.observedChange,
       searchDirection: this.searchDirection,
+      keystrokes: this.keystrokes,
     };
   }
   private schedule() {
@@ -336,6 +338,10 @@ export class GameEditor {
       return;
     }
     if (!e.repeat) this.hasFreshKey = true;
+    // Every key Vim receives counts, including undo and Escape; a lone
+    // modifier is part of the next key, not a key of its own.
+    if (!["Shift", "Control", "Alt", "Meta", "CapsLock"].includes(e.key))
+      this.keystrokes++;
     const key =
       Vim.vimKeyFromEvent(e, getCM(this.view)!.state.vim ?? undefined) || e.key;
     // Mutation/mode listeners flush after Vim handles the event. A microtask

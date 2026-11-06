@@ -2336,6 +2336,14 @@ kbd {
   color: inherit;
   font-size: inherit;
 }
+.focus-coaching .key-count {
+  margin: 0 0 8px;
+  font-size: 0.6875rem;
+  color: #909b95;
+}
+.focus-coaching .key-score {
+  color: var(--orange);
+}
 .focus-coaching .hint-box {
   margin: 0;
   padding: 0;

@@ -821,3 +821,47 @@ test(":help on a completed level cannot trigger the l continuation shortcut", as
   await expect(page.locator("main")).toHaveAttribute("data-puzzle", "word-0");
   await expect(editor(page)).toBeFocused();
 });
+test("the key counter scores every edit against a best and an example", async ({ page }) => {
+  await openAt(page, 4);
+  await expect(page.locator(".key-count")).toHaveText("0 keys");
+  await keys(page, ["h", "l"]);
+  await expect(page.locator(".key-count")).toHaveText("2 keys");
+  await keys(page, COURSE[4].solutionKeys);
+  const total = 2 + COURSE[4].solutionKeys.length;
+  await expect(page.locator(".key-score")).toHaveText(
+    `${total} keys · example solution: ${COURSE[4].solutionKeys.join("").length}`,
+  );
+  await expect.poll(async () => (await read(page)).courseIndex).toBe(5);
+  const state = await read(page);
+  expect(state.attempts.at(-1)!.keystrokes).toBe(total);
+  expect(state.keyBests).toEqual({ [COURSE[4].id]: total });
+  // A later attempt at the same puzzle compares with that best.
+  await page.evaluate((id) => {
+    const progress = window.testProgress!.current;
+    progress.keyBests = { [id]: 9 };
+  }, COURSE[5].id);
+  await expect(page.locator("main")).toHaveAttribute("data-puzzle", COURSE[5].id);
+  await keys(page, COURSE[5].solutionKeys);
+  await expect(page.locator(".key-score")).toContainText(
+    `${COURSE[5].solutionKeys.join("").length} keys · new best (was 9)`,
+  );
+});
+test("the key counter shows on guided and prompted edits too", async ({ page }) => {
+  for (const index of [0, 2]) {
+    await openAt(page, index);
+    await expect(page.locator(".key-count")).toHaveText("0 keys");
+    await keys(page, COURSE[index].solutionKeys);
+    const n = COURSE[index].solutionKeys.join("").length;
+    await expect(page.locator(".key-score")).toContainText(`${n} ${n === 1 ? "key" : "keys"} ·`);
+    await expect.poll(async () => (await read(page)).attempts.at(-1)?.keystrokes).toBe(
+      COURSE[index].solutionKeys.join("").length,
+    );
+  }
+});
+test("example key counts treat named keys as one key", () => {
+  return import("../lib/game/engine").then(({ exampleKeyCount }) => {
+    expect(exampleKeyCount({ ...COURSE[0], solutionKeys: ["c", "iw", "pizza", "<Esc>", "/ding<CR>"] })).toBe(
+      1 + 2 + 5 + 1 + 6,
+    );
+  });
+});
