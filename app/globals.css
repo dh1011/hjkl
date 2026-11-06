@@ -1471,6 +1471,13 @@ kbd {
   padding: 0;
   justify-content: center;
 }
+/* The shuffle toggle reads like Select all / Clear all: dim when off, bright when on. */
+.selection-icon-button[aria-pressed="false"] {
+  opacity: 0.45;
+}
+.selection-icon-button[aria-pressed="true"] {
+  opacity: 1;
+}
 .selection-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

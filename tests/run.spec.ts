@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import { test, read } from "./progress-fixture";
 import { COURSE, SECTIONS, SKILLS } from "../lib/game/curriculum";
 import { course } from "../lib/game/content/course";
-import { courseForRun, courseForSkills, DEFAULT_SECTION_ORDER, shuffleSkillSections } from "../lib/game/run";
+import { courseForRun, courseForSkills, DEFAULT_SECTION_ORDER, shuffleSkills, shuffleSkillSections } from "../lib/game/run";
 import { initializeProgress } from "../lib/game/progress";
 import type { ProgressState, Skill } from "../lib/game/types";
 
@@ -123,3 +123,42 @@ for (const skill of SKILLS) {
     await page.close();
   });
 }
+
+test("a shuffled selection keeps each selected skill's lessons together and in stage order", () => {
+  const selected: Skill[] = ["word", "typo", "search", "mark"];
+  for (const value of [0, 0.3, 0.6, 0.999]) {
+    const order = shuffleSkills(selected, () => value);
+    expect([...order].sort()).toEqual([...selected].sort());
+    const run = courseForSkills(order, { keepOrder: true });
+    expect([...new Set(run.COURSE.map((p) => p.skill))]).toEqual(order);
+    for (const skill of order) {
+      const lessons = run.COURSE.filter((p) => p.skill === skill);
+      expect(lessons.map((p) => p.assistance).slice(0, 6)).toEqual([
+        "guided", "guided", "prompted", "prompted", "independent", "independent",
+      ]);
+    }
+    expect(run.COURSE.every((p) => selected.includes(p.skill))).toBe(true);
+  }
+  // Without keepOrder the authored course order wins, whatever order skills were picked in.
+  expect([...new Set(courseForSkills(["mark", "typo"]).COURSE.map((p) => p.skill))]).toEqual(["typo", "mark"]);
+});
+
+test("the picker's shuffle toggle starts the selected skills in a shuffled order", async ({ context }) => {
+  const page = await context.newPage();
+  // Fix the draw so the shuffled order is known: [typo, word, line] -> [word, line, typo].
+  await page.addInitScript(() => (Math.random = () => 0));
+  await page.goto("/");
+  const toggle = page.getByRole("button", { name: "Shuffle skill order" });
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await page.locator("#landing-practice-typo").focus();
+  for (const key of ["Space", "l", "Space", "l", "Space", "s"]) await page.keyboard.press(key);
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await page.keyboard.press("Control+Enter");
+  await expect(page.getByRole("textbox", { name: "Vim practice editor" })).toBeVisible();
+  const order = shuffleSkills(SKILLS.slice(0, 3), () => 0);
+  expect(order).toEqual(["word", "line", "typo"]);
+  await expect(page.locator("main")).toHaveAttribute(
+    "data-puzzle",
+    courseForSkills(order, { keepOrder: true }).COURSE[0].id,
+  );
+});

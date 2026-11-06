@@ -5,11 +5,23 @@ import type { Skill } from "./types";
 
 export const DEFAULT_SECTION_ORDER = course.sections.map((section) => section.id);
 
-/** Selected skills always retain their authored teaching progression. */
-export function courseForSkills(selectedSkills: readonly Skill[]) {
+/**
+ * Selected skills always retain their authored teaching progression. With
+ * `keepOrder`, skill blocks follow the order of `selectedSkills` (a shuffled
+ * run) instead of the course order; each block's lessons stay in sequence.
+ */
+export function courseForSkills(
+  selectedSkills: readonly Skill[],
+  { keepOrder = false }: { keepOrder?: boolean } = {},
+) {
   const sections = course.sections.filter(
     (section) => section.kind === "lesson" && selectedSkills.includes(section.skill!),
   );
+  // Array.prototype.sort is stable, so a skill's own sections keep their order.
+  if (keepOrder)
+    sections.sort(
+      (a, b) => selectedSkills.indexOf(a.skill!) - selectedSkills.indexOf(b.skill!),
+    );
   if (!sections.length) throw new Error("Select at least one skill");
   const lastSection = sections.at(-1)!.id;
   const milestone = (name: keyof typeof course.unlocks) => ({
@@ -22,6 +34,16 @@ export function courseForSkills(selectedSkills: readonly Skill[]) {
     sections,
     unlocks: { paper: milestone("paper"), cursor: milestone("cursor"), effect: milestone("effect") },
   });
+}
+
+/** Fisher-Yates shuffle of the selected skills for an opt-in shuffled run. */
+export function shuffleSkills<T>(skills: readonly T[], random: () => number = Math.random): T[] {
+  const result = [...skills];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
 }
 
 /** Shuffle whole skill blocks; keep assessments behind the skills they use. */

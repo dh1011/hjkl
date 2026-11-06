@@ -7,7 +7,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { ArrowRight, Check, ListChecks, ListX, Worm } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  ListChecks,
+  ListX,
+  Shuffle,
+  Worm,
+} from "lucide-react";
 import { GameMark } from "@/components/game-mark";
 import { GameObjective } from "@/components/game-objective";
 import { WormGame } from "@/components/worm-game";
@@ -27,7 +34,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { practicePuzzle, SKILLS, SKILL_METADATA } from "@/lib/game/curriculum";
-import { courseForRun, courseForSkills } from "@/lib/game/run";
+import { courseForRun, courseForSkills, shuffleSkills } from "@/lib/game/run";
 import { displayKey, evaluate, mastery, recovery } from "@/lib/game/engine";
 import { GameEditor } from "@/lib/game/editor";
 import { initializeProgress, SESSION_GAP } from "@/lib/game/progress";
@@ -55,12 +62,13 @@ function DesktopGame() {
   const data = useRef<ProgressState | null>(null);
   const sectionOrder = state?.sectionOrder;
   const selectedSkills = state?.selectedSkills;
+  const shuffledSkills = !!state?.shuffledSkills;
   const { COURSE, SECTIONS, UNLOCKS } = useMemo(
     () =>
       selectedSkills
-        ? courseForSkills(selectedSkills)
+        ? courseForSkills(selectedSkills, { keepOrder: shuffledSkills })
         : courseForRun(sectionOrder),
-    [sectionOrder, selectedSkills],
+    [sectionOrder, selectedSkills, shuffledSkills],
   );
   const [snapshot, setSnapshot] = useState<EditorSnapshot>(EMPTY);
   const snapshotRef = useRef(snapshot);
@@ -100,6 +108,8 @@ function DesktopGame() {
     "assist" | "journey" | "practice" | "help" | "settings" | null
   >(null);
   const [practiceSkills, setPracticeSkills] = useState<Skill[]>([]);
+  // Opt-in: run the selected skill blocks in a random order.
+  const [shuffle, setShuffle] = useState(false);
   const panelRef = useRef(panel);
   useLayoutEffect(() => {
     panelRef.current = panel;
@@ -441,10 +451,14 @@ function DesktopGame() {
     if (!data.current || !practiceSkills.length) return;
     const s = data.current;
     if (timer.current) clearTimeout(timer.current);
-    const run = courseForSkills(practiceSkills);
+    const skills = shuffle
+      ? shuffleSkills(practiceSkills)
+      : SKILLS.filter((skill) => practiceSkills.includes(skill));
+    const run = courseForSkills(skills, { keepOrder: shuffle });
     commit({
       ...s,
-      selectedSkills: [...practiceSkills],
+      selectedSkills: skills,
+      shuffledSkills: shuffle,
       sectionOrder: run.SECTIONS.map((section) => section.id),
       courseIndex: 0,
       review: [],
@@ -593,6 +607,11 @@ function DesktopGame() {
           setPracticeSkills(event.key === "a" ? [...SKILLS] : []);
           return;
         }
+        if (event.key === "s") {
+          consume();
+          setShuffle((on) => !on);
+          return;
+        }
         if (
           event.key === "Enter" &&
           event.target instanceof Element &&
@@ -681,6 +700,9 @@ function DesktopGame() {
         ) {
           consume();
           setPracticeSkills(event.key === "a" ? [...SKILLS] : []);
+        } else if (panelRef.current === "practice" && event.key === "s") {
+          consume();
+          setShuffle((on) => !on);
         }
         return;
       }
@@ -768,6 +790,15 @@ function DesktopGame() {
               >
                 <ListX size={18} />
               </button>
+              <button
+                className="text-button selection-icon-button"
+                aria-label="Shuffle skill order"
+                aria-pressed={shuffle}
+                title={shuffle ? "Shuffle skill order: on" : "Shuffle skill order: off"}
+                onClick={() => setShuffle((on) => !on)}
+              >
+                <Shuffle size={18} />
+              </button>
             </div>
           </header>
           <div className="selection-grid" aria-label="Practice skills">
@@ -816,7 +847,8 @@ function DesktopGame() {
           <footer className="selection-footer">
             <p className="selection-keys">
               <kbd>h j k l</kbd> move · <kbd>space</kbd> select · <kbd>a</kbd>{" "}
-              all · <kbd>n</kbd> none · <kbd>ctrl enter</kbd> start
+              all · <kbd>n</kbd> none · <kbd>s</kbd> shuffle ·{" "}
+              <kbd>ctrl enter</kbd> start
             </p>
             <a className="selection-credit" href={REPO_URL}>
               GitHub
@@ -1118,6 +1150,15 @@ function DesktopGame() {
                 >
                   <ListX size={18} />
                 </button>
+                <button
+                  className="text-button selection-icon-button"
+                  aria-label="Shuffle skill order"
+                  aria-pressed={shuffle}
+                  title={shuffle ? "Shuffle skill order: on" : "Shuffle skill order: off"}
+                  onClick={() => setShuffle((on) => !on)}
+                >
+                  <Shuffle size={18} />
+                </button>
               </div>
               <div className="practice-skill-list" aria-label="Practice skills">
                 {SKILLS.map((skill) => {
@@ -1169,7 +1210,8 @@ function DesktopGame() {
               )}
               <p className="sheet-note selection-keys">
                 <kbd>h j k l</kbd> move · <kbd>space</kbd> select · <kbd>a</kbd>{" "}
-                all · <kbd>n</kbd> none · <kbd>ctrl enter</kbd> start
+                all · <kbd>n</kbd> none · <kbd>s</kbd> shuffle ·{" "}
+              <kbd>ctrl enter</kbd> start
               </p>
             </div>
           )}
