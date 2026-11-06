@@ -35,7 +35,13 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { practicePuzzle, SKILLS, SKILL_METADATA } from "@/lib/game/curriculum";
 import { courseForRun, courseForSkills, shuffleSkills } from "@/lib/game/run";
-import { displayKey, evaluate, mastery, recovery } from "@/lib/game/engine";
+import {
+  displayKey,
+  evaluate,
+  exampleKeyCount,
+  mastery,
+  recovery,
+} from "@/lib/game/engine";
 import { GameEditor } from "@/lib/game/editor";
 import { initializeProgress, SESSION_GAP } from "@/lib/game/progress";
 import type {
@@ -57,6 +63,7 @@ const EMPTY: EditorSnapshot = {
   lastCommand: "",
   selectionMatched: false,
 };
+const keyLabel = (n: number) => `${n} ${n === 1 ? "key" : "keys"}`;
 function DesktopGame() {
   const [state, setState] = useState<ProgressState | null>(null);
   const data = useRef<ProgressState | null>(null);
@@ -115,6 +122,12 @@ function DesktopGame() {
     panelRef.current = panel;
   }, [panel]);
   const [hint, setHint] = useState(0);
+  // Shown after a counted edit: keys used, the previous best, and the example.
+  const [score, setScore] = useState<{
+    keys: number;
+    best?: number;
+    example: number;
+  } | null>(null);
   const hintRef = useRef(0);
   const [nudge, setNudge] = useState("");
   const host = useRef<HTMLDivElement>(null);
@@ -202,6 +215,20 @@ function DesktopGame() {
           p.kind === "final",
         completedAt: at,
       };
+      // Every edit is counted; any valid edit still passes.
+      const keys = completedSnapshot.keystrokes ?? 0;
+      {
+        result.keystrokes = keys;
+        const best = next.keyBests?.[p.id];
+        setScore({ keys, best, example: exampleKeyCount(p) });
+        next = {
+          ...next,
+          keyBests: {
+            ...next.keyBests,
+            [p.id]: best === undefined ? keys : Math.min(best, keys),
+          },
+        };
+      }
       next = { ...next, attempts: [...next.attempts, result], lastActive: at };
       if (next.settings.sound) {
         try {
@@ -252,7 +279,7 @@ function DesktopGame() {
           data.current!.celebration !== undefined ? "celebration" : "playing";
         setPhase(phaseRef.current);
         commit(data.current!);
-      }, 750);
+      }, 1200);
     },
     [commit, COURSE.length, SECTIONS],
   );
@@ -264,6 +291,7 @@ function DesktopGame() {
       progress.active?.puzzleId === p.id ? progress.active : undefined;
     hintRef.current = resume?.hints ?? 0;
     setHint(hintRef.current);
+    setScore(null);
     setNudge("");
     const editor = new GameEditor({
       puzzle: p,
@@ -913,7 +941,21 @@ function DesktopGame() {
             )}
           </section>
           <div className="focus-coaching" aria-live="polite">
-            {phase === "playing" && statusLine && hint === 0 ? (
+            {phase === "playing" && (
+              <p className="key-count" aria-live="off">
+                {keyLabel(snapshot.keystrokes ?? 0)}
+              </p>
+            )}
+            {phase === "success" && score ? (
+              <p className="key-score" role="status">
+                {keyLabel(score.keys)}
+                {score.best !== undefined &&
+                  (score.keys < score.best
+                    ? ` · new best (was ${score.best})`
+                    : ` · best ${score.best}`)}
+                {` · example solution: ${score.example}`}
+              </p>
+            ) : phase === "playing" && statusLine && hint === 0 ? (
               <div className="context-recovery">
                 <p role="status">{statusLine}</p>
                 {problem && (

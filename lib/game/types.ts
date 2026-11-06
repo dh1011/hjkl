@@ -79,6 +79,8 @@ export interface EditorSnapshot {
   copied?: boolean;
   repeatable?: boolean;
   searchDirection?: "forward" | "backward";
+  /** Keys pressed in this attempt, excluding lone modifiers. */
+  keystrokes?: number;
 }
 export interface AttemptResult {
   puzzleId: string;
@@ -92,6 +94,7 @@ export interface AttemptResult {
   demonstrated: Skill[];
   mixed: boolean;
   completedAt: number;
+  keystrokes?: number;
 }
 export interface SavedAttempt {
   puzzleId: string;
@@ -115,6 +118,8 @@ export interface ProgressState {
     cursor: boolean;
     effect: boolean;
   };
+  /** Fewest keys per puzzle id this page session. */
+  keyBests?: Record<string, number>;
   active?: SavedAttempt;
   review: string[];
   reviewIndex: number;

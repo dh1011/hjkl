@@ -7,3 +7,4 @@
 - The off-track undo prompt is guided-only; prompted and independent edits show no recovery prompt.
 - Animation, floating keys, cursor effects, and selection outlines are not substitutes for bottom guidance. Do not use an animated cue instead of the bottom hint for any skill, including the first typo lesson.
 - Keep long skill goals concise in every assistance stage: show only changed lines, with removed text struck through and added text highlighted. Use the same goal presentation for guided, prompted, and independent lessons; do not repeat the entire document above the editor.
+- A key counter is always shown below the editor, and each finished edit shows its key count, the best for that puzzle this session, and the example solution's count. Completion still depends only on the text; the example is a reference, never the optimal answer.

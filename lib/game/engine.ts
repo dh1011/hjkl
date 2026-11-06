@@ -100,6 +100,13 @@ export function recovery(p: PuzzleSpec, s: EditorSnapshot): string | undefined {
   )
     return "Off track. Press u to undo.";
 }
+/** Keys in the authored example: each `<…>` name is one key, as is each character. */
+export function exampleKeyCount(p: PuzzleSpec) {
+  return p.solutionKeys.reduce(
+    (total, step) => total + (step.match(/<[^>]+>|[\s\S]/g)?.length ?? 0),
+    0,
+  );
+}
 export function displayKey(key: string) {
   return key === "<Esc>"
     ? "esc"
