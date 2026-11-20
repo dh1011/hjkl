@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { test, seedProgress, read } from "./progress-fixture";
-import { COURSE } from "../lib/game/curriculum";
+import { COURSE, SKILLS, SKILL_METADATA } from "../lib/game/curriculum";
 import { newProgress } from "../lib/game/progress";
 import { courseForRun, shuffleSkillSections } from "../lib/game/run";
 const editor = (page: Page) =>
@@ -864,4 +864,64 @@ test("example key counts treat named keys as one key", () => {
       1 + 2 + 5 + 1 + 6,
     );
   });
+});
+test(":q leaves an unchanged lesson for the skill picker", async ({ page }) => {
+  await openAt(page, 0);
+  await keys(page, ["h"]);
+  await keys(page, [...":q", "<CR>"]);
+  await expect(page.getByRole("button", { name: "Start" })).toBeVisible();
+  await expect(editor(page)).toHaveCount(0);
+  await expect(
+    page.getByRole("checkbox", { name: `Practice ${SKILL_METADATA[SKILLS[0]].name}` }),
+  ).toBeFocused();
+});
+test(":q keeps changed text until :q! is used", async ({ page }) => {
+  await openAt(page, 4);
+  await keys(page, ["i", "z", "<Esc>"]);
+  const changed = await editor(page).textContent();
+  await keys(page, [...":q", "<CR>"]);
+  await expect(page.getByRole("status")).toContainText("E37: No write since last change");
+  await expect(editor(page)).toHaveText(changed!);
+  await expect(editor(page)).toBeFocused();
+  await keys(page, [...":quit!", "<CR>"]);
+  await expect(page.getByRole("button", { name: "Start" })).toBeVisible();
+  expect((await read(page)).active).toBeUndefined();
+});
+test(":q on a completion screen returns to the skill picker", async ({ page }) => {
+  await openAt(page, 6, { celebration: 0 }, false);
+  await expect(page.getByRole("button", { name: "Keep going", exact: true })).toBeFocused();
+  await page.keyboard.type(":q");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: "Start" })).toBeVisible();
+  expect((await read(page)).celebration).toBeUndefined();
+});
+test(":q keeps selected skills and in-page progress for the next run", async ({ page }) => {
+  await openAt(page, 0);
+  await keys(page, [...":q", "<CR>"]);
+  const first = page.getByRole("checkbox", {
+    name: `Practice ${SKILL_METADATA[SKILLS[0]].name}`,
+  });
+  const second = page.getByRole("checkbox", {
+    name: `Practice ${SKILL_METADATA[SKILLS[1]].name}`,
+  });
+  await expect(first).toBeFocused();
+  await page.keyboard.press("Space");
+  await page.keyboard.press("Control+Enter");
+  await expect(editor(page)).toBeVisible();
+  await keys(page, COURSE[0].solutionKeys);
+  await expect.poll(async () => (await read(page)).courseIndex).toBe(1);
+  await expect(page.locator("main")).toHaveAttribute("data-puzzle", COURSE[1].id);
+  await keys(page, [...":q", "<CR>"]);
+  await expect(first).toBeChecked();
+  await expect(first).toBeFocused();
+  await page.keyboard.press("l");
+  await expect(second).toBeFocused();
+  await page.keyboard.press("Space");
+  await page.keyboard.press("Control+Enter");
+  await expect(editor(page)).toBeVisible();
+  const state = await read(page);
+  expect(state.courseIndex).toBe(0);
+  expect(state.selectedSkills).toEqual([SKILLS[0], SKILLS[1]]);
+  expect(state.attempts).toHaveLength(1);
+  expect(state.keyBests?.[COURSE[0].id]).toBe(COURSE[0].solutionKeys.join("").length);
 });

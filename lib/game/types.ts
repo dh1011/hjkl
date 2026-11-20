@@ -182,4 +182,5 @@ export type CommandKey =
   | "'a"
   | "`a"
   | "u"
-  | "esc";
+  | "esc"
+  | ":q";
