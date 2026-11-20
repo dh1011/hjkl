@@ -21,11 +21,17 @@ interface Options {
   onChange: (snapshot: EditorSnapshot) => void;
   onNudge: (text: string) => void;
   onHelp?: () => void;
+  onQuit?: (force: boolean) => void;
   locked: () => boolean;
 }
 // Ex commands are registered globally by Vim; callbacks belong to each editor.
 const helpActions = new WeakMap<object, () => void>();
 Vim.defineEx("help", "h", (cm) => helpActions.get(cm)?.());
+const quitActions = new WeakMap<object, (force: boolean) => void>();
+// :q, :quit, and :q! (Vim passes the bang through as the argument).
+Vim.defineEx("quit", "q", (cm, params) =>
+  quitActions.get(cm)?.(params.argString?.trim() === "!"),
+);
 
 export class GameEditor {
   view: EditorView;
@@ -126,6 +132,11 @@ export class GameEditor {
       // Let Vim close its command prompt before the help panel takes focus.
       queueMicrotask(() => {
         if (this.alive && !this.options.locked()) this.options.onHelp?.();
+      });
+    });
+    quitActions.set(getCM(this.view)!, (force) => {
+      queueMicrotask(() => {
+        if (this.alive && !this.options.locked()) this.options.onQuit?.(force);
       });
     });
     this.view.dom.addEventListener("keydown", this.keydown, true);
@@ -432,6 +443,7 @@ export class GameEditor {
   destroy() {
     this.alive = false;
     helpActions.delete(getCM(this.view)!);
+    quitActions.delete(getCM(this.view)!);
     this.view.dom.removeEventListener("keydown", this.keydown, true);
     this.view.dom.removeEventListener("keyup", this.afterKey);
     this.view.dom.removeEventListener("pointerdown", this.pointer, true);

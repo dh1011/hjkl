@@ -141,6 +141,7 @@ function DesktopGame() {
   const [commandError, setCommandError] = useState("");
   const continueButton = useRef<HTMLButtonElement>(null);
   const adapter = useRef<GameEditor | null>(null);
+  const quitAction = useRef<(force: boolean) => void>(() => {});
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const audio = useRef<AudioContext | null>(null);
   const commit = useCallback((s: ProgressState) => {
@@ -306,9 +307,11 @@ function DesktopGame() {
         panelRef.current = "help";
         setPanel("help");
       },
+      onQuit: (force) => quitAction.current(force),
       onChange: (s) => {
         const latest = data.current;
-        if (!latest || puzzleRef.current !== p) return;
+        // The editor can report once more after :q, while it is torn down.
+        if (!latest || puzzleRef.current !== p || landingRef.current) return;
         const expectedId =
           latest.reviewIndex < latest.review.length
             ? latest.review[latest.reviewIndex]
@@ -501,6 +504,42 @@ function DesktopGame() {
     panelRef.current = null;
     setPanel(null);
   };
+  // :q returns to the picker. Attempts, mastery and bests stay for this page
+  // session; the unfinished edit is dropped, so changed text needs :q!.
+  const quitToPicker = (force = false) => {
+    const s = data.current;
+    if (!s) return;
+    if (phaseRef.current === "playing" && !force) {
+      const text = adapter.current?.snapshot().document;
+      if (text !== undefined && text !== puzzleRef.current.initial) {
+        setNudge("E37: No write since last change (add ! to override)");
+        return;
+      }
+    }
+    if (timer.current) clearTimeout(timer.current);
+    commit({
+      ...s,
+      review: [],
+      reviewIndex: 0,
+      suspended: undefined,
+      active: undefined,
+      celebration: undefined,
+    });
+    phaseRef.current = "playing";
+    setPhase("playing");
+    panelRef.current = null;
+    setPanel(null);
+    setCommandOpen(false);
+    setCommandError("");
+    setNudge("");
+    // Previously selected skills stay ticked; focus lands on the first one.
+    landingSkillIndexRef.current = Math.max(
+      0,
+      SKILLS.findIndex((skill) => practiceSkills.includes(skill)),
+    );
+    landingRef.current = true;
+    setLanding(true);
+  };
   const setting = (patch: Partial<ProgressState["settings"]>) => {
     if (data.current)
       commit({
@@ -591,6 +630,7 @@ function DesktopGame() {
       openCommand,
       startPractice,
     };
+    quitAction.current = quitToPicker;
   });
   useEffect(() => {
     const consumed = new Set<string>();
@@ -1009,7 +1049,8 @@ function DesktopGame() {
               <ArrowRight size={17} />
             </button>
             <p className="continue-keys">
-              <kbd>enter</kbd> or <kbd>l</kbd> to continue
+              <kbd>enter</kbd> or <kbd>l</kbd> to continue · <kbd>:q</kbd>{" "}
+              to choose skills
             </p>
           </section>
         )}
@@ -1020,7 +1061,9 @@ function DesktopGame() {
               event.preventDefault();
               const command = commandInput.current?.value.trim();
               if (command === "help" || command === "h") openHelp();
-              else setCommandError("Type help, then press Enter.");
+              else if (command && /^q(?:u(?:it?)?)?!?$/.test(command))
+                quitToPicker(true);
+              else setCommandError("Type help or q, then press Enter.");
             }}
           >
             <label>

@@ -289,13 +289,20 @@ const commands = {
     example:
       "Started a command by mistake? Escape cancels it without changing text.",
   },
+  ":q": {
+    key: ":q",
+    meaning:
+      "Quit this challenge and return to the skill picker. After changing the text, use :q! to quit anyway.",
+    example:
+      "Want different skills? :q then Enter goes back; your mastery stays for this visit.",
+  },
 } satisfies Record<CommandKey, CommandHelp>;
 export function helpForPuzzle(puzzle: PuzzleSpec) {
   const keys = puzzle.helpSkills.flatMap((skill) => SKILL_METADATA[skill].helpKeys);
   return {
     title: puzzle.helpTitle,
     commands: [
-      ...new Set<CommandKey>([...keys, "u", "esc"]),
+      ...new Set<CommandKey>([...keys, "u", "esc", ":q"]),
     ].map((key) => commands[key]),
   };
 }
